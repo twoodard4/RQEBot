@@ -1,6 +1,7 @@
 import openai
 import streamlit as st
 import os
+
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
 st.set_page_config(page_title="RQEBot: Root Question Explorer", layout="wide")
@@ -12,22 +13,31 @@ if not api_key:
     st.stop()
 openai.api_key = api_key
 
-scenario = st.text_area("📘 Scenario (editable):", height=100, value=(
-    "Multiple parents have requested IEEs citing disagreement with district evaluations. "
-    "Documentation is inconsistent, and escalation procedures vary across campuses."
-))
+scenario = st.text_area(
+    "📘 Scenario (editable):", 
+    height=100, 
+    value=(
+        "Multiple parents have requested IEEs citing disagreement with district evaluations. "
+        "Documentation is inconsistent, and escalation procedures vary across campuses."
+    )
+)
 
 if "history" not in st.session_state:
-    st.session_state.history = []
+    st.session_state.history = []  # List of tuples (speaker, text)
 if "summary" not in st.session_state:
-    st.session_state.summary = []
+    st.session_state.summary = []  # List of strings (questions asked)
 
 user_input = st.text_input("💬 Ask a question about this scenario:")
 
 def reframe_with_gpt(user_input, summary, scenario, question, history):
+    # Convert summary list to string with newlines
+    summary_text = "\n".join(summary) if isinstance(summary, list) else str(summary)
+    # Extract just the text from history tuples for prompt
+    history_text = "\n".join(text for _, text in history) if history else ""
+    
     prompt = f"""Your prompt here using:
 User input: {user_input}
-Summary: {summary}
+Summary: {summary_text}
 Scenario: {scenario}
 
 "{scenario}"
@@ -36,7 +46,7 @@ The user just asked:
 "{question}"
 
 Here is the history of previous questions:
-{chr(10).join(history)}
+{history_text}
 
 Respond as follows:
 - Interpret the intent of the question
@@ -54,10 +64,15 @@ Respond as follows:
     )
     return response.choices[0].message.content
 
-
 if user_input:
     with st.spinner("RQEBot is thinking..."):
-        response = reframe_with_gpt(user_input, st.session_state.summary, scenario)
+        response = reframe_with_gpt(
+            user_input,
+            st.session_state.summary,
+            scenario,
+            user_input,              # question param is the same as user_input
+            st.session_state.history
+        )
         st.session_state.summary.append(user_input)
         st.session_state.history.append(("You", user_input))
         st.session_state.history.append(("RQEBot", response))
@@ -70,4 +85,3 @@ if len(st.session_state.summary) >= 6:
     st.subheader("🧩 Inquiry Summary")
     st.markdown("\n".join(f"- {q}" for q in st.session_state.summary))
     st.success("You’ve asked multiple deep questions. Consider shifting into action planning based on emerging patterns.")
-"""
