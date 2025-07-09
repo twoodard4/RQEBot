@@ -1,6 +1,7 @@
 import openai
 import streamlit as st
 import os
+openai.api_key = os.getenv("OPENAI_API_KEY")
 
 st.set_page_config(page_title="RQEBot: Root Question Explorer", layout="wide")
 st.title("🧠 RQEBot — Root Question Explorer")
@@ -23,10 +24,23 @@ if "summary" not in st.session_state:
 
 user_input = st.text_input("💬 Ask a question about this scenario:")
 
-def reframe_with_gpt(question, history, scenario):
-    prompt = f"""
-You are RQEBot, a facilitative AI designed to support root cause analysis. Here's the current scenario:
-
+def reframe_with_gpt(user_input, summary, scenario):
+    prompt = f"""Your prompt here using:
+User input: {user_input}
+Summary: {summary}
+Scenario: {scenario}
+"""
+    response = openai.ChatCompletion.create(
+        model="gpt-4",
+        messages=[
+            {"role": "system", "content": "You are a helpful assistant."},
+            {"role": "user", "content": prompt}
+        ],
+        temperature=0.7,
+    )
+    # Extract the generated text from response
+    return response.choices[0].message.content
+    
 "{scenario}"
 
 The user just asked:
