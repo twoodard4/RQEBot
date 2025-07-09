@@ -79,3 +79,4 @@ if len(st.session_state.summary) >= 6:
     st.subheader("🧩 Inquiry Summary")
     st.markdown("\n".join(f"- {q}" for q in st.session_state.summary))
     st.success("You’ve asked multiple deep questions. Consider shifting into action planning based on emerging patterns.")
+"""
