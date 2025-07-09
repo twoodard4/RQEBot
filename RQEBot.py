@@ -24,23 +24,12 @@ if "summary" not in st.session_state:
 
 user_input = st.text_input("💬 Ask a question about this scenario:")
 
-def reframe_with_gpt(user_input, summary, scenario):
+def reframe_with_gpt(user_input, summary, scenario, question, history):
     prompt = f"""Your prompt here using:
 User input: {user_input}
 Summary: {summary}
 Scenario: {scenario}
-"""
-    response = openai.ChatCompletion.create(
-        model="gpt-4",
-        messages=[
-            {"role": "system", "content": "You are a helpful assistant."},
-            {"role": "user", "content": prompt}
-        ],
-        temperature=0.7,
-    )
-    # Extract the generated text from response
-    return response.choices[0].message.content
-    
+
 "{scenario}"
 
 The user just asked:
@@ -54,15 +43,17 @@ Respond as follows:
 - Affirm its relevance and insight
 - Reframe the question one level deeper using systems thinking
 - Use a warm, reflective tone modeled on professional coaching language
-
-Your response:
 """
-    completion = openai.ChatCompletion.create(
+    response = openai.ChatCompletion.create(
         model="gpt-4",
-        messages=[{"role": "user", "content": prompt}],
-        temperature=0.7
+        messages=[
+            {"role": "system", "content": "You are a helpful assistant."},
+            {"role": "user", "content": prompt}
+        ],
+        temperature=0.7,
     )
-    return completion.choices[0].message.content.strip()
+    return response.choices[0].message.content
+
 
 if user_input:
     with st.spinner("RQEBot is thinking..."):
