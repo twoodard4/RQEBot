@@ -1,18 +1,15 @@
 import openai
 import streamlit as st
-import os
 
-openai.api_key = os.getenv("OPENAI_API_KEY")
+# ✅ Use your Streamlit Cloud secret key
+openai.api_key = st.secrets["OPENAI_API_KEY"]
 
+# ✅ App configuration
 st.set_page_config(page_title="RQEBot: Root Question Explorer", layout="wide")
 st.title("🧠 RQEBot — Root Question Explorer")
 st.markdown("_Modeling deeper inquiry through reflective questioning._")
 
-api_key = st.sidebar.text_input("🔐 Enter your OpenAI API key", type="password")
-if not api_key:
-    st.stop()
-openai.api_key = st.secrets["OPENAI_API_KEY"]
-
+# ✅ Editable scenario field
 scenario = st.text_area(
     "📘 Scenario (editable):", 
     height=100, 
@@ -22,23 +19,22 @@ scenario = st.text_area(
     )
 )
 
+# ✅ Initialize session state
 if "history" not in st.session_state:
     st.session_state.history = []  # List of tuples (speaker, text)
 if "summary" not in st.session_state:
     st.session_state.summary = []  # List of strings (questions asked)
 
+# ✅ User question input
 user_input = st.text_input("💬 Ask a question about this scenario:")
 
+# ✅ GPT call logic
 def reframe_with_gpt(user_input, summary, scenario, question, history):
-    # Convert summary list to string with newlines
     summary_text = "\n".join(summary) if isinstance(summary, list) else str(summary)
-    # Extract just the text from history tuples for prompt
     history_text = "\n".join(text for _, text in history) if history else ""
     
-    prompt = f"""Your prompt here using:
-User input: {user_input}
-Summary: {summary_text}
-Scenario: {scenario}
+    prompt = f"""
+You are RQEBot, a facilitative AI designed to support root cause analysis. Here's the current scenario:
 
 "{scenario}"
 
@@ -53,6 +49,8 @@ Respond as follows:
 - Affirm its relevance and insight
 - Reframe the question one level deeper using systems thinking
 - Use a warm, reflective tone modeled on professional coaching language
+
+Your response:
 """
     response = openai.ChatCompletion.create(
         model="gpt-4",
@@ -62,24 +60,27 @@ Respond as follows:
         ],
         temperature=0.7,
     )
-    return response.choices[0].message.content
+    return response.choices[0].message.content.strip()
 
+# ✅ When a question is asked
 if user_input:
     with st.spinner("RQEBot is thinking..."):
         response = reframe_with_gpt(
             user_input,
             st.session_state.summary,
             scenario,
-            user_input,              # question param is the same as user_input
+            user_input,  # question param is same
             st.session_state.history
         )
         st.session_state.summary.append(user_input)
         st.session_state.history.append(("You", user_input))
         st.session_state.history.append(("RQEBot", response))
 
+# ✅ Display chat history
 for speaker, text in st.session_state.history:
     st.markdown(f"**{speaker}:** {text}")
 
+# ✅ Show summary after 6+ questions
 if len(st.session_state.summary) >= 6:
     st.markdown("---")
     st.subheader("🧩 Inquiry Summary")
