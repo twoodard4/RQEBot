@@ -11,7 +11,7 @@ st.markdown("_Modeling deeper inquiry through reflective questioning._")
 api_key = st.sidebar.text_input("🔐 Enter your OpenAI API key", type="password")
 if not api_key:
     st.stop()
-openai.api_key = api_key
+openai.api_key = st.secrets["OPENAI_API_KEY"]
 
 scenario = st.text_area(
     "📘 Scenario (editable):", 
