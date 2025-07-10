@@ -66,7 +66,7 @@ response = client.chat.completions.create(
 )
 
 return response.choices[0].message.content.strip()
-    return response.choices[0].message.content.strip()
+return response.choices[0].message.content.strip()
 
 # ✅ When a question is asked
 if user_input:
