@@ -1,13 +1,13 @@
-import openai
+from openai import OpenAI
 import streamlit as st
-
-# ✅ Use your Streamlit Cloud secret key
-openai.api_key = st.secrets["OPENAI_API_KEY"]
 
 # ✅ App configuration
 st.set_page_config(page_title="RQEBot: Root Question Explorer", layout="wide")
 st.title("🧠 RQEBot — Root Question Explorer")
 st.markdown("_Modeling deeper inquiry through reflective questioning._")
+
+# ✅ Use your Streamlit Cloud secret key
+client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
 
 # ✅ Editable scenario field
 scenario = st.text_area(
@@ -32,7 +32,7 @@ user_input = st.text_input("💬 Ask a question about this scenario:")
 def reframe_with_gpt(user_input, summary, scenario, question, history):
     summary_text = "\n".join(summary) if isinstance(summary, list) else str(summary)
     history_text = "\n".join(text for _, text in history) if history else ""
-    
+
     prompt = f"""
 You are RQEBot, a facilitative AI designed to support root cause analysis. Here's the current scenario:
 
@@ -52,21 +52,17 @@ Respond as follows:
 
 Your response:
 """
-    from openai import OpenAI
 
-client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
+    response = client.chat.completions.create(
+        model="gpt-4",
+        messages=[
+            {"role": "system", "content": "You are a helpful assistant."},
+            {"role": "user", "content": prompt}
+        ],
+        temperature=0.7,
+    )
 
-response = client.chat.completions.create(
-    model="gpt-4",
-    messages=[
-        {"role": "system", "content": "You are a helpful assistant."},
-        {"role": "user", "content": prompt}
-    ],
-    temperature=0.7,
-)
-
-return response.choices[0].message.content.strip()
-return response.choices[0].message.content.strip()
+    return response.choices[0].message.content.strip()
 
 # ✅ When a question is asked
 if user_input:
