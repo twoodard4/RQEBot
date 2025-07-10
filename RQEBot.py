@@ -54,7 +54,7 @@ Your response:
 """
 
     response = client.chat.completions.create(
-        model="gpt-4o",  # or "gpt-3.5-turbo" if you aren't on GPT-4 API tier,
+        model="gpt-3.5-turbo",
         messages=[
             {"role": "system", "content": "You are a helpful assistant."},
             {"role": "user", "content": prompt}
